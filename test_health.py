@@ -3,6 +3,8 @@ from app import create_app
 
 @pytest.fixture
 def client():
+    import prometheus_client
+    prometheus_client.REGISTRY._names_to_collectors.clear()
     app = create_app()
     app.config["TESTING"] = True
     from app.database import db
