@@ -1,3 +1,4 @@
+import os
 from dotenv import load_dotenv
 from flask import Flask, jsonify 
 
@@ -18,6 +19,11 @@ def create_app():
     from app import models 
 
     register_routes(app)
+
+    from app.extensions import cache
+    app.config["CACHE_TYPE"] = "RedisCache"
+    app.config["CACHE_REDIS_URL"] = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
+    cache.init_app(app)
 
     @app.route("/health")
     def health():
