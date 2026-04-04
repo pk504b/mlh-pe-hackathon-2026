@@ -5,6 +5,9 @@ from app import create_app
 def client():
     app = create_app()
     app.config["TESTING"] = True
+    from app.database import db
+    from app.models.song import Song
+    db.create_tables([Song], safe=True)
     with app.test_client() as client:
         yield client
 
