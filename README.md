@@ -196,13 +196,13 @@ it back up.
 | **uv over pip** | It installs things faster,and it handles virtualenv automatically. |
 | **PostgreSQL over SQLite** | SQLite isn't production-grade — PostgreSQL is what real companies use |
 | **pytest-cov** | It gives us actual facts and figures |
-| **GitHub Actions** | It's a free CI/CD and it helps alot |
-| **Uptime tracking** | Judges look for observability — knowing how long you've been up is basic SRE |
-| **Database health check** | Just checking if Flask is running isn't enough — we verify the DB too |
-| **Nginx** | Industry standard load balancer — required for Scalability Silver |
-| **Redis** | Caching layer required for Scalability Gold — fastest way to reduce DB load |
-| **Locust** | Recommended in the Quest Log, Python-based so fits our stack |
-| **Docker restart policy** | Required for Reliability Gold Chaos Mode — auto-resurrection |
+| **GitHub Actions** | It's a free CI/CD and it helps alot with deployment simulation|
+| **Uptime tracking** |Basic essentials |
+| **Database health check** | Just checking if Flask is running isn't enough and we also verify the DB too |
+| **Nginx** | Best load balancer and easy to invoke |
+| **Redis** | It's the fastest way to reduce DB load |
+| **Locust** | Best for python based projects |
+| **Docker restart policy** |We use this to test the chaos mode |
 
 ---
 
