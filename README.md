@@ -4,7 +4,7 @@ A production-ready Flask API built for the MLH Production Engineering
 Hackathon 2026. Built to survive outages, load tests, and chaos 
 engineering challenges.
 
-**Team:** pk504b, gbemilekeadesiyan-a11y
+**Team:** pk504b, gbemilekeadesiyan-a11y, Optimistic-max (The Shorteners)
 
 ---
 
@@ -12,17 +12,17 @@ engineering challenges.
 
 | Tool | Purpose |
 |---|---|
-| **Flask** | Web framework — handles incoming requests |
-| **PostgreSQL** | Database — stores data permanently |
-| **Peewee** | ORM — lets us talk to PostgreSQL using Python |
-| **uv** | Package manager — faster alternative to pip |
-| **pytest** | Testing framework |
+| **Flask** | Web framework adn it handles incoming requests |
+| **PostgreSQL** | The database for our app, it stores data permanently |
+| **Peewee** | It's an ORM that lets us talk to PostgreSQL using Python |
+| **uv** | It's a Package manager and it's a faster alternative to pip |
+| **pytest** | What we used to run our test|
 | **pytest-cov** | Measures how much of our code is tested |
-| **GitHub Actions** | CI/CD — runs tests automatically on every push |
-| **Docker** | Containerizes the app so it runs anywhere |
-| **Nginx** | Load balancer — splits traffic across multiple app instances |
-| **Redis** | Caching — stores frequent responses in memory |
-| **Locust** | Load testing — simulates thousands of concurrent users |
+| **GitHub Actions** | It's for the CI/CD it runs tests automatically on every push |
+| **Docker** | Containerizes the app so it runs anywhere and we can have multiple versions of it |
+| **Nginx** | It's the Load balancer that splits traffic across multiple app instances |
+| **Redis** | it's for caching and it stores frequent responses in memory so we do not have to repeat using routes to the main databse |
+| **Locust** | It's for Load testing, it simulates thousands of concurrent users |
 
 ---
 
@@ -41,11 +41,11 @@ PostgreSQL Database
 
 ## Quick Start
 
-### Prerequisites
+### We needed:
 - Python 3.12+
 - PostgreSQL running locally
 - uv installed
-- Docker Desktop (for containerized setup)
+- Docker Desktop (for our containerized setup)
 
 ### Local Setup
 ```bash
@@ -87,7 +87,7 @@ docker-compose up -d
 | POST | `/songs` | Create a new song | Created song object |
 | GET | `/songs/<id>` | Get a song by ID | Single song object |
 
-### Example: Create a Song
+### Example: Let's say you want to create a Song
 ```bash
 curl -X POST http://localhost:5000/songs \
   -H "Content-Type: application/json" \
@@ -95,19 +95,19 @@ curl -X POST http://localhost:5000/songs \
        "genre": "Afrobeats", "duration": 212}'
 ```
 
-### Example: Get All Songs
+### Example: Let us get All Songs
 ```bash
 curl http://localhost:5000/songs
 ```
 
 ---
 
-## Running Tests
+## Now, on running Tests
 ```bash
 # Run tests
 uv run pytest test_health.py -v
 
-# Run with coverage report
+# If you want to run with coverage report
 uv run pytest test_health.py -v --cov=app --cov-report=term-missing
 ```
 
@@ -129,24 +129,24 @@ Current coverage: **95%** (10 tests passing)
 
 ---
 
-## Reliability Features
+## Reliability Features we Added
 
 - `/health` endpoint checks live database connectivity on every request
-- Uptime tracking from the moment the service starts
-- Graceful error handling — all errors return clean JSON, never a crash
+- We added uptime tracking from the moment the service starts
+- We also added graceful error handling which means that all errors return clean JSON, never a crash
 - 10 automated tests at 95% coverage
-- CI/CD via GitHub Actions — blocks merges if tests fail
-- Docker restart policy — app auto-recovers if it crashes
+- We implemented CI/CD via GitHub Actions which blocks merges if tests fail
+- Now the Docker has a restart policy, the app auto-recovers IF it crashes
 
 ---
 
 ## Scalability Features
 
-- Docker containers — app runs in isolated, reproducible environments
-- Multiple app instances via Docker Compose — horizontal scaling
-- Nginx load balancer — distributes traffic evenly across instances
-- Redis caching — frequent responses served from memory, not database
-- Locust load testing — verified stable under 500 concurrent users
+- Docker containers which allows the app to run in isolated, reproducible environments. We had to ensure High availability.
+- Multiple app instances via Docker Compose for horizontal scaling
+- Nginx load balancer which helps distributes traffic evenly across instances
+- Redis caching for frequent responses served from memory, not database
+- And Locust load testing which we verified as stable under 500 concurrent users
 
 ---
 
@@ -164,15 +164,15 @@ Current coverage: **95%** (10 tests passing)
 **How we detect it:** Every `/health` request pings the DB with 
 `SELECT 1`. If it fails, we know within seconds.
 
-**How to fix it:** Restart PostgreSQL. App recovers automatically 
+**How to fix it:** Restart PostgreSQL. Then the app recovers automatically 
 on the next request — no app restart needed.
 
 ### Bad Request / Unknown Route
-**What happens:** Returns clean JSON instead of an HTML error page:
+**What happens:** It returns clean JSON instead of the usual HTML error page:
 ```json
 {"error": "Resource not found", "status": 404}
 ```
-**How we detect it:** Global 404/500 error handlers catch everything.
+**How we detect it:** the global 404/500 error handlers catch everything.
 
 ### App Crashes Completely
 **What happens:** Docker restart policy automatically brings 
@@ -191,12 +191,12 @@ it back up.
 
 | Decision | Why we made it |
 |---|---|
-| **Flask over Django** | Django is heavy for a hackathon — Flask is minimal and fast to set up |
-| **Peewee over SQLAlchemy** | Peewee is simpler and the template already used it |
-| **uv over pip** | Faster installs, handles virtualenv automatically, built into the template |
+| **Flask over Django** | Flask is minimal and fast to set up |
+| **Peewee over SQLAlchemy** | Peewee is by far easier |
+| **uv over pip** | It installs things faster,and it handles virtualenv automatically. |
 | **PostgreSQL over SQLite** | SQLite isn't production-grade — PostgreSQL is what real companies use |
-| **pytest-cov** | Gives us a coverage report to prove to judges we're not guessing |
-| **GitHub Actions** | Free CI/CD, integrates directly with GitHub, zero extra setup |
+| **pytest-cov** | It gives us actual facts and figures |
+| **GitHub Actions** | It's a free CI/CD and it helps alot |
 | **Uptime tracking** | Judges look for observability — knowing how long you've been up is basic SRE |
 | **Database health check** | Just checking if Flask is running isn't enough — we verify the DB too |
 | **Nginx** | Industry standard load balancer — required for Scalability Silver |
