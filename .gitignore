@@ -36,3 +36,8 @@ judging/
 
 # Seed files
 seed/
+
+# Coverage
+.coverage
+htmlcov/
+.pytest_cache/
