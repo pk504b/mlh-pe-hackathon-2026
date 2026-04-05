@@ -34,29 +34,14 @@ def create_app():
     from app.routes.monitoring import monitoring_bp
     app.register_blueprint(monitoring_bp)
 
-    # Register models and ensure tables exist
-    from app import models
-    from app.models.user import User
-    from app.models.url import Url
-    from app.models.event import Event
-    
-    with app.app_context():
-        # This will create tables in the current DB if they don't exist
-        db.create_tables([User, Url, Event])
+    from app import models 
 
     register_routes(app)
 
     from app.extensions import cache
     app.config["CACHE_TYPE"] = "RedisCache"
     app.config["CACHE_REDIS_URL"] = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
-    
-    try:
-        # Check if we can reach Redis if it's external, or just try to init
-        cache.init_app(app)
-    except Exception as e:
-        app.logger.warning(f"Redis not available, falling back to NullCache: {e}")
-        app.config["CACHE_TYPE"] = "NullCache"
-        cache.init_app(app)
+    cache.init_app(app)
 
     @app.route("/health")
     def health():
