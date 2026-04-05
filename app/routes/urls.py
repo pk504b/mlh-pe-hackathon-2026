@@ -19,21 +19,13 @@ def generate_short_code(length=6):
 
 @urls_bp.route("/urls", methods=["GET"])
 def list_urls():
-    user_id = request.args.get("user_id", type=int)
-    is_active = request.args.get("is_active")
-    
-    query = Url.select().order_by(Url.id)
-    
+    user_id = request.args.get("user_id")
     if user_id:
-        query = query.where(Url.user == user_id)
-        
-    if is_active is not None:
-        # Handle "true"/"false" strings from query params
-        active_bool = is_active.lower() == "true"
-        query = query.where(Url.is_active == active_bool)
-        
-    data = [model_to_dict(u) for u in query]
-    return jsonify(data)
+        urls = list(Url.select().where(Url.user == user_id))
+    else:
+        urls = list(Url.select())
+    data = [model_to_dict(u, recurse=False) for u in urls]
+    return jsonify(kind="list", sample=data, total_items=len(data))
 
 @urls_bp.route("/urls/<int:url_id>", methods=["GET"])
 def get_url(url_id):
@@ -46,25 +38,22 @@ def get_url(url_id):
 @urls_bp.route("/urls", methods=["POST"])
 def create_url():
     data = request.get_json()
-    if not data or "original_url" not in data or "user_id" not in data:
-         return jsonify(error="Missing required fields", status=400), 400
-         
+    if not data:
+        return jsonify(error="No data provided"), 400
+    if "original_url" not in data:
+        return jsonify(error="Missing fields: ['original_url']"), 400
+    short_code = data.get("short_code") or generate_short_code()
     try:
-        user = User.get_by_id(data["user_id"])
-    except User.DoesNotExist:
-        return jsonify(error="User not found", status=404), 404
-        
-    short_code = generate_short_code()
-    
-    url = Url.create(
-        user=user,
-        original_url=data["original_url"],
-        title=data.get("title", "Untitled"),
-        short_code=short_code,
-        is_active=True
-    )
-    
-    return jsonify(model_to_dict(url)), 201
+        url = Url.create(
+            user=data.get("user_id"),
+            short_code=short_code,
+            original_url=data["original_url"],
+            title=data.get("title"),
+            is_active=data.get("is_active", True)
+        )
+        return jsonify(model_to_dict(url, recurse=False)), 201
+    except Exception as e:
+        return jsonify(error=str(e)), 400
 
 @urls_bp.route("/urls/<int:url_id>", methods=["PUT"])
 def update_url(url_id):
