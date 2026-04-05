@@ -41,7 +41,14 @@ def create_app():
     from app.extensions import cache
     app.config["CACHE_TYPE"] = "RedisCache"
     app.config["CACHE_REDIS_URL"] = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
-    cache.init_app(app)
+    
+    try:
+        # Check if we can reach Redis if it's external, or just try to init
+        cache.init_app(app)
+    except Exception as e:
+        app.logger.warning(f"Redis not available, falling back to NullCache: {e}")
+        app.config["CACHE_TYPE"] = "NullCache"
+        cache.init_app(app)
 
     @app.route("/health")
     def health():

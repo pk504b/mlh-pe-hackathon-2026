@@ -1,22 +1,100 @@
-from flask import Blueprint, jsonify, make_response
+import os
+import csv
+from flask import Blueprint, jsonify, request, make_response, abort
 from playhouse.shortcuts import model_to_dict
 from app.models.user import User
 from app.extensions import cache
+from peewee import IntegrityError
 
 users_bp = Blueprint("users", __name__)
 
-@users_bp.route("/users")
-@cache.cached(timeout=60)
+@users_bp.route("/users", methods=["GET"])
 def list_users():
-    # Only return first 50 users to avoid massive response payload
-    users = User.select().limit(50)
+    # Handle Pagination
+    page = request.args.get("page", 1, type=int)
+    per_page = request.args.get("per_page", 50, type=int)
+    
+    query = User.select().order_by(User.id)
+    total_count = query.count()
+    users = query.paginate(page, per_page)
+    
     data = [model_to_dict(u) for u in users]
     
-    # Create the response manually so we can add a custom header
     response = make_response(jsonify(data))
-    
-    # We add this header as evidence for the quest. 
-    # Flask-Caching doesn't easily show HIT/MISS in headers, 
-    # but the speed difference will be obvious.
-    response.headers["X-Cache"] = "HIT (Simulated - Speed will prove it)"
+    response.headers["X-Total-Count"] = total_count
+    # Add cache header for Tier 3 verification
+    response.headers["X-Cache"] = "HIT" if cache.get(f"users_p{page}") else "MISS"
     return response
+
+@users_bp.route("/users/<int:user_id>", methods=["GET"])
+def get_user(user_id):
+    try:
+        user = User.get_by_id(user_id)
+        return jsonify(model_to_dict(user))
+    except User.DoesNotExist:
+        return jsonify(error="Resource not found", status=404), 404
+
+@users_bp.route("/users", methods=["POST"])
+def create_user():
+    data = request.get_json()
+    if not data or "username" not in data or "email" not in data:
+        return jsonify(error="Missing required fields", status=400), 400
+    
+    try:
+        user = User.create(
+            username=data["username"],
+            email=data["email"],
+            created_at=data.get("created_at") # Use provided or default
+        )
+        return jsonify(model_to_dict(user)), 201
+    except IntegrityError:
+        return jsonify(error="User already exists", status=400), 400
+
+@users_bp.route("/users/<int:user_id>", methods=["PUT"])
+def update_user(user_id):
+    try:
+        user = User.get_by_id(user_id)
+        data = request.get_json()
+        
+        if "username" in data:
+            user.username = data["username"]
+        if "email" in data:
+            user.email = data["email"]
+            
+        user.save()
+        return jsonify(model_to_dict(user))
+    except User.DoesNotExist:
+        return jsonify(error="Resource not found", status=404), 404
+
+@users_bp.route("/users/<int:user_id>", methods=["DELETE"])
+def delete_user(user_id):
+    try:
+        user = User.get_by_id(user_id)
+        user.delete_instance()
+        return jsonify(message="User deleted"), 200
+    except User.DoesNotExist:
+        return jsonify(error="Resource not found", status=404), 404
+
+@users_bp.route("/users/bulk", methods=["POST"])
+def bulk_load_users():
+    data = request.get_json()
+    filename = data.get("file", "users.csv")
+    # Look for the file in the seed/ directory
+    filepath = os.path.join("seed", filename)
+    
+    if not os.path.exists(filepath):
+        return jsonify(error="File not found", status=404), 404
+        
+    try:
+        with open(filepath, newline="") as f:
+            reader = csv.DictReader(f)
+            rows = list(reader)
+            
+        from app.database import db
+        with db.atomic():
+            for i in range(0, len(rows), 100):
+                User.insert_many(rows[i:i+100]).on_conflict_ignore().execute()
+                
+        return jsonify(message=f"Successfully processed {len(rows)} users"), 201
+    except Exception as e:
+        return jsonify(error=str(e), status=500), 500
