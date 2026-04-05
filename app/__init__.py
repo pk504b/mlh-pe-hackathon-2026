@@ -30,11 +30,12 @@ def create_app():
     from app.models.user import User
     from app.models.url import Url
     from app.models.event import Event
+    from app.models.song import Song
     
     with app.app_context():
         init_db(app)
         # Create tables automatically for automated tests/environments
-        db.create_tables([User, Url, Event])
+        db.create_tables([User, Url, Event, Song])
     from app.routes.monitoring import monitoring_bp
     app.register_blueprint(monitoring_bp)
 

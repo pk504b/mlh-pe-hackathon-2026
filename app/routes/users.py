@@ -22,8 +22,13 @@ def list_users():
     
     response = make_response(jsonify(data))
     response.headers["X-Total-Count"] = total_count
-    # Add cache header for Tier 3 verification
-    response.headers["X-Cache"] = "HIT" if cache.get(f"users_p{page}") else "MISS"
+    # Add cache header for Tier 3 verification (safe for no-redis environments)
+    try:
+        x_cache = "HIT" if cache.get(f"users_p{page}") else "MISS"
+    except Exception:
+        x_cache = "MISS (No Redis)"
+    
+    response.headers["X-Cache"] = x_cache
     return response
 
 @users_bp.route("/users/<int:user_id>", methods=["GET"])
