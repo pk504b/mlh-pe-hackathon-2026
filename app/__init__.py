@@ -27,10 +27,14 @@ def create_app():
 
     app = Flask(__name__)
     
-    # ... rest of your config ...
-    init_db(app)
-
-    # Register internal blueprints
+    from app.models.user import User
+    from app.models.url import Url
+    from app.models.event import Event
+    
+    with app.app_context():
+        init_db(app)
+        # Create tables automatically for automated tests/environments
+        db.create_tables([User, Url, Event])
     from app.routes.monitoring import monitoring_bp
     app.register_blueprint(monitoring_bp)
 
