@@ -30,11 +30,18 @@ def create_app():
     from app.models.user import User
     from app.models.url import Url
     from app.models.event import Event
+    from seed_db import run_seeding
     
     with app.app_context():
         init_db(app)
         # Create tables automatically for automated tests/environments
         db.create_tables([User, Url, Event])
+        
+        # Automatically seed if the database is currently empty
+        if User.select().count() == 0:
+            print("Database empty. Starting automatic seeding...")
+            run_seeding()
+            print("Automatic seeding complete.")
     from app.routes.monitoring import monitoring_bp
     app.register_blueprint(monitoring_bp)
 
