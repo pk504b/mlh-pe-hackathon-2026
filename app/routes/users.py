@@ -84,11 +84,18 @@ def delete_user(user_id):
 def bulk_load_users():
     data = request.get_json()
     filename = data.get("file", "users.csv")
-    # Look for the file in the seed/ directory
-    filepath = os.path.join("seed", filename)
     
-    if not os.path.exists(filepath):
-        return jsonify(error="File not found", status=404), 404
+    # Try multiple common locations for the CSV
+    possible_paths = [
+        filename,
+        os.path.join("seed", filename),
+        os.path.join("data", filename)
+    ]
+    
+    filepath = next((p for p in possible_paths if os.path.exists(p)), None)
+    
+    if not filepath:
+        return jsonify(error=f"File {filename} not found in root or /seed", status=404), 404
         
     try:
         with open(filepath, newline="") as f:
